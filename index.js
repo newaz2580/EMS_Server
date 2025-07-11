@@ -55,7 +55,18 @@ async function run() {
       const result=await usersCollection.find().toArray()
       res.send(result)
     })
-   
+   app.patch('/users/:id', async (req, res) => {
+  const id = req.params.id; // ⬅️ user ID from URL
+  const { isVerified } = req.body; // ⬅️ isVerified status from frontend
+
+  const result = await usersCollection.updateOne(
+    { _id: new ObjectId(id) },       // 🔍 find user by ID
+    { $set: { isVerified } }         // ✅ update only the isVerified field
+  );
+
+  res.send(result); // 🔁 send update result
+});
+
     app.get('/user-role/:email',async(req,res)=>{
      try{
        const email=req.params.email
