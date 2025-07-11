@@ -3,7 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 const port =process.env.PORT || 3000
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // Employee_Management
 // SP22r4FKGAwNRutK
 app.use(express.json());
@@ -28,6 +28,9 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
         const usersCollection = client.db("employeeManagement").collection("users");
+        const worksheetCollection = client.db("employeeManagement").collection("workSheet");
+
+        
     // const PurchaseServiceCollection = client
     //   .db("serviceSharing")
       // .collection("bookingService");
@@ -36,7 +39,7 @@ async function run() {
       const userData=req.body
       userData.created_at=new Date().toISOString()
       userData.last_loggedIn=new Date().toISOString()
-      console.log(userData)
+      userData.isVerified=false
       const query={email:userData.email}
       const alreadyExisting=await usersCollection.findOne(query)
       if(alreadyExisting){
@@ -48,7 +51,11 @@ async function run() {
       const result=await usersCollection.insertOne(userData)
       res.send(result)
     })
-
+    app.get('/users',async(req,res)=>{
+      const result=await usersCollection.find().toArray()
+      res.send(result)
+    })
+   
     app.get('/user-role/:email',async(req,res)=>{
      try{
        const email=req.params.email
@@ -62,6 +69,36 @@ async function run() {
       res.status(500).send({message:'internal server error',error:error.message})
      }
     })
+   app.post('/workSheet',async(req,res)=>{
+    const newWork=req.body
+    console.log(newWork)
+    const result=await worksheetCollection.insertOne(newWork)
+    res.send(result)
+
+   })
+    app.get('/workSheet',async(req,res)=>{
+    const email=req.query.email
+    const result=await worksheetCollection.find({email}).toArray()
+    res.send(result)
+   })
+   app.delete('/workSheet/:id',async(req,res)=>{
+    const id=req.params.id
+    const query={_id:new ObjectId(id)}
+    const result=await worksheetCollection.deleteOne(query)
+    res.send(result)
+   })
+app.patch('/workSheet/:id', async (req, res) => {
+  const id = req.params.id;
+  const { tasks, hours, date } = req.body;
+
+  const result = await worksheetCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { tasks, hours, date } }
+  );
+
+  res.send(result);
+});
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
