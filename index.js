@@ -29,6 +29,8 @@ async function run() {
     await client.connect();
         const usersCollection = client.db("employeeManagement").collection("users");
         const worksheetCollection = client.db("employeeManagement").collection("workSheet");
+        const messageCollection = client.db("employeeManagement").collection("message");
+
 
         
     // const PurchaseServiceCollection = client
@@ -121,6 +123,13 @@ app.get('/users/verified',async(req,res)=>{
   } catch (error) {
     console.log(error)
   }
+})
+
+app.post('/user/message',async(req,res)=>{
+  const newMessage=req.body;
+  newMessage.created_at=new Date().toISOString()
+  const result=await messageCollection.insertOne(newMessage)
+  res.send(result)
 })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
