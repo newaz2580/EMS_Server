@@ -40,6 +40,7 @@ async function run() {
       userData.created_at=new Date().toISOString()
       userData.last_loggedIn=new Date().toISOString()
       userData.isVerified=false
+      userData.status="active"
       const query={email:userData.email}
       const alreadyExisting=await usersCollection.findOne(query)
       if(alreadyExisting){
@@ -56,15 +57,15 @@ async function run() {
       res.send(result)
     })
    app.patch('/users/:id', async (req, res) => {
-  const id = req.params.id; // ⬅️ user ID from URL
-  const { isVerified } = req.body; // ⬅️ isVerified status from frontend
+  const id = req.params.id;
+  const { isVerified } = req.body; 
 
   const result = await usersCollection.updateOne(
-    { _id: new ObjectId(id) },       // 🔍 find user by ID
-    { $set: { isVerified } }         // ✅ update only the isVerified field
+    { _id: new ObjectId(id) },  
+    { $set: { isVerified } }       
   );
 
-  res.send(result); // 🔁 send update result
+  res.send(result);
 });
 
     app.get('/user-role/:email',async(req,res)=>{
@@ -80,6 +81,9 @@ async function run() {
       res.status(500).send({message:'internal server error',error:error.message})
      }
     })
+  
+
+
    app.post('/workSheet',async(req,res)=>{
     const newWork=req.body
     console.log(newWork)
@@ -110,6 +114,14 @@ app.patch('/workSheet/:id', async (req, res) => {
   res.send(result);
 });
 
+app.get('/users/verified',async(req,res)=>{
+  try {
+    const result=await usersCollection.find({isVerified:true}).toArray()
+  res.send(result)
+  } catch (error) {
+    console.log(error)
+  }
+})
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
