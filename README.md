@@ -6,11 +6,10 @@ This is the backend server for the [Employee Management System](https://employee
 
 ## 🌐 Live Site (Client)
 
-🔗 [https://employee-management-app-e3a87.web.app](https://employee-management-app-e3a87.web.app)
-
+🔗 [https://employee-management-app-e3a87.web.app]
 📥 Admin Login  
 - **Username (email):** `admin@gmail.com`  
-- **Password:** `123456`
+- **Password:** `123456Aa@`
 
 ---
 
