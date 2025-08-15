@@ -2,7 +2,7 @@
 
 This is the backend server for the [Employee Management System](https://employee-management-app-e3a87.web.app). Built with **Express.js**, **MongoDB**, and **Firebase Admin SDK**, it manages secure authentication, role-based access control, employee salary handling, and Stripe payment integration.
 
----
+--
 
 ## 🌐 Live Site (Client)
 
