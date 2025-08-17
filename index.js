@@ -15,12 +15,12 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "http://localhost:5174",
-    "https://employee-management-app-e3a87.web.app",
-    "https://empolyee-management-server.vercel.app/",
+    "https://employee-management-app-e3a87.web.app"
   ],
   credentials: true,
-  optionSuccessStatus: 200,
+  optionsSuccessStatus: 200,
 };
+
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
@@ -136,7 +136,7 @@ async function run() {
         res.status(500).send(err);
       }
     });
-    app.post("/users", verifyToken, verifyHR, async (req, res) => {
+    app.post("/users",  async (req, res) => {
       const userData = req.body;
       userData.created_at = new Date().toISOString();
       userData.last_loggedIn = new Date().toISOString();
@@ -186,6 +186,26 @@ async function run() {
           .send({ message: "internal server error", error: error.message });
       }
     });
+
+    app.get("/users/:email", async (req, res) => {
+  const email = req.params.email;
+  const user = await usersCollection.findOne({ email });
+  if (!user) return res.status(404).send({ message: "User not found" });
+  res.send(user);
+});
+
+app.put("/users/:email", async (req, res) => {
+  const email = req.params.email;
+  const updatedData = req.body;
+
+  const result = await usersCollection.updateOne(
+    { email },
+    { $set: updatedData }
+  );
+
+  res.send({ message: "Profile updated", result });
+});
+
 
     app.post("/workSheet", verifyToken, async (req, res) => {
       const newWork = req.body;
@@ -420,6 +440,56 @@ async function run() {
       );
       res.send(result);
     });
+// Overview / Dashboard Stats API
+app.get("/dashboard/stats", verifyToken, async (req, res) => {
+  try {
+    // Fetch all users
+    const users = await usersCollection.find().toArray();
+
+    const totalEmployees = users.filter(u => u.role === "Employee").length;
+    const totalHRs = users.filter(u => u.role === "HR").length;
+    const totalAdmins = users.filter(u => u.role === "Admin").length;
+    const verifiedUsers = users.filter(u => u.isVerified === true).length;
+
+    // Fetch all payments (for salary chart)
+    const payments = await paymentCollection.find().toArray();
+    const salaries = payments.map(p => ({
+      EmployeeName: p.EmployeeName || p.employeeName,
+      salary: Number(p.salary)
+    }));
+
+    res.json({
+      totalEmployees,
+      totalHRs,
+      totalAdmins,
+      verifiedUsers,
+      salaries
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch dashboard stats" });
+  }
+});
+
+// Feedback API (for Overview page feedback count)
+// Feedback API (for Overview page feedback count)
+app.get("/dashboard/feedback", verifyToken, async (req, res) => {
+  try {
+    const feedbacks = await messageCollection
+      .find({}, { projection: { _id: 1, email: 1, message: 1, created_at: 1 } })
+      .toArray();
+
+    res.json({ count: feedbacks.length, feedbacks });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch feedbacks" });
+  }
+});
+
+
+
+
+    
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
@@ -430,6 +500,8 @@ async function run() {
     // await client.close();
   }
 }
+
+// Dashboard stats endpoint
 
 run().catch(console.dir);
 
